@@ -1,6 +1,5 @@
 import { Sfx } from './audio/sfx';
 import { Recorder } from './capture/recorder';
-import { Haptics } from './haptics/haptics';
 import { CONFIG } from './config';
 import { loadFromBlob, makeAlphaSampler } from './image/loader';
 import { ViewTransform } from './interaction/coords';
@@ -38,7 +37,6 @@ export class App {
   private pinch = new PinchSystem();
   private mask = new MaskLayer();
   private sfx = new Sfx();
-  private haptics = new Haptics();
   private recorder = new Recorder();
   private renderer: Renderer | null = null;
   private panelCtl: PanelControl;
@@ -97,12 +95,6 @@ export class App {
     const unlockAudio = () => this.sfx.unlock();
     window.addEventListener('pointerup', unlockAudio, { once: true });
     window.addEventListener('touchend', unlockAudio, { once: true });
-
-    // 振動フィードバック。ボタン類は押した時に軽くティック
-    this.haptics.init();
-    document.addEventListener('click', (e) => {
-      if (e.target instanceof Element && e.target.closest('button')) this.haptics.tick();
-    });
 
     this.recorder.onStatus = (m) => showToast(m);
     this.recorder.onStopped = () => {
@@ -342,7 +334,6 @@ export class App {
       const iso = this.view.isoFromClient(e.clientX, e.clientY, this.canvas);
       if (this.pinch.tryGrab(e.pointerId, iso)) {
         this.sfx.grab();
-        this.haptics.tick();
       } else if (this.pointers.size >= 2) {
         // つかめない場所に2本目 → ジェスチャモード。つまみ中のほっぺは離す
         this.gestureActive = true;
@@ -375,7 +366,6 @@ export class App {
       const intensity = this.pinch.intensityOf(g);
       this.pinch.release(e.pointerId);
       this.sfx.release(intensity, state.params.releaseFreq);
-      this.haptics.impact(intensity);
     },
   };
 
