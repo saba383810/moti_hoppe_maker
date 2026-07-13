@@ -141,6 +141,8 @@ export class App {
       );
       this.setImage(img);
       this.mask.preset(SAMPLE_MASK);
+      // 体の輪郭ぞいは最大でもちもちに（ふちを引っぱると可愛い）
+      this.mask.presetRing(0.5, 0.555, 0.389, 0.344, 0.07, 1);
       setMode('play');
       showToast('ほっぺは塗ってあるよ。つまんで引っぱってみて！');
     } catch {

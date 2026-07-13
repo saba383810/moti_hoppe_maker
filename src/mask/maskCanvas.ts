@@ -169,4 +169,27 @@ export class MaskLayer {
     this.painted = true;
     this.invalidate();
   }
+
+  /** プリセット用の楕円リング塗り（体の輪郭などに使う）。preset()の後に呼ぶ */
+  presetRing(
+    u: number,
+    v: number,
+    rx: number,
+    ry: number,
+    widthIso: number,
+    value: number,
+  ): void {
+    const { width: w, height: h } = this.canvas;
+    const ctx = this.ctx;
+    const c = Math.round(255 * value);
+    ctx.globalCompositeOperation = 'lighten';
+    ctx.strokeStyle = `rgb(${c},${c},${c})`;
+    ctx.lineWidth = Math.max(1, widthIso * h);
+    ctx.beginPath();
+    ctx.ellipse(u * w, v * h, rx * h, ry * h, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalCompositeOperation = 'source-over';
+    this.painted = true;
+    this.invalidate();
+  }
 }
