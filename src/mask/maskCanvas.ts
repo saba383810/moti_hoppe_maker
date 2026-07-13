@@ -144,10 +144,25 @@ export class MaskLayer {
     return data[(y * width + x) * 4] / 255;
   };
 
-  /** サンプル用のほっぺプリセット（rest UV座標） */
+  /** サンプル用のほっぺプリセット（rest UV座標）。フチが滑らかな全力塗りの円 */
   presetCheeks(cheeks: { u: number; v: number; r: number }[]): void {
     this.clear();
-    for (const c of cheeks) this.stamp(c.u, c.v, c.r, false, true);
+    const { width: w, height: h } = this.canvas;
+    const ctx = this.ctx;
+    ctx.globalCompositeOperation = 'lighten';
+    for (const c of cheeks) {
+      const cx = c.u * w;
+      const cy = c.v * h;
+      const r = Math.max(1, c.r * h);
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, '#fff');
+      grad.addColorStop(0.55, '#fff');
+      grad.addColorStop(1, '#000');
+      ctx.fillStyle = grad;
+      ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+    }
+    ctx.globalCompositeOperation = 'source-over';
     this.painted = true;
+    this.invalidate();
   }
 }
