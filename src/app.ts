@@ -15,14 +15,6 @@ import { initFlow } from './ui/flow';
 import { initPanel, type PanelControl } from './ui/panel';
 import { showToast } from './ui/toast';
 
-// public/sample.svg のプリセットマスク（rest UV）。
-// 体ぜんたい薄め → 顔まわり中くらい → ほっぺ全力、の3段階もちもち
-const SAMPLE_MASK = [
-  { u: 0.5, v: 0.55, r: 0.45, value: 0.35, core: 0.6 },
-  { u: 0.5, v: 0.57, r: 0.3, value: 0.6, core: 0.5 },
-  { u: 0.322, v: 0.586, r: 0.12, value: 1, core: 0.55 },
-  { u: 0.678, v: 0.586, r: 0.12, value: 1, core: 0.55 },
-];
 
 export class App {
   readonly maskTool = new MaskTool();
@@ -140,19 +132,10 @@ export class App {
         blob.type === 'image/svg+xml' ? blob : new Blob([blob], { type: 'image/svg+xml' }),
       );
       this.setImage(img);
-      this.mask.preset(SAMPLE_MASK);
-      // 体+耳の実シルエットに沿った縁取りを最大でもちもちに
-      this.mask.presetOutline((ctx, w, h) => {
-        ctx.beginPath();
-        ctx.ellipse(0.5 * w, 0.5547 * h, 0.3887 * h, 0.3438 * h, 0, 0, Math.PI * 2);
-        ctx.moveTo(0.3184 * w + 0.084 * h, 0.2461 * h);
-        ctx.arc(0.3184 * w, 0.2461 * h, 0.084 * h, 0, Math.PI * 2);
-        ctx.moveTo(0.6816 * w + 0.084 * h, 0.2461 * h);
-        ctx.arc(0.6816 * w, 0.2461 * h, 0.084 * h, 0, Math.PI * 2);
-        ctx.fill();
-      }, 0.07, 1);
+      // サンプルはぜんぶもちもちで即あそべるように
+      state.maskEnabled = false;
       setMode('play');
-      showToast('ほっぺは塗ってあるよ。つまんで引っぱってみて！');
+      showToast('すきなところを つまんで引っぱってみて！');
     } catch {
       showToast('サンプルを読み込めませんでした');
     }
