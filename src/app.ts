@@ -16,9 +16,10 @@ import { initPanel, type PanelControl } from './ui/panel';
 import { showToast } from './ui/toast';
 
 // public/sample.svg のプリセットマスク（rest UV）。
-// 丸い体ぜんたいをうっすらもちもちに、ほっぺは全力で塗っておく
+// 体ぜんたい薄め → 顔まわり中くらい → ほっぺ全力、の3段階もちもち
 const SAMPLE_MASK = [
   { u: 0.5, v: 0.55, r: 0.45, value: 0.35, core: 0.6 },
+  { u: 0.5, v: 0.57, r: 0.3, value: 0.6, core: 0.5 },
   { u: 0.322, v: 0.586, r: 0.12, value: 1, core: 0.55 },
   { u: 0.678, v: 0.586, r: 0.12, value: 1, core: 0.55 },
 ];
