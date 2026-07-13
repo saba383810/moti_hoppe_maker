@@ -41,18 +41,15 @@ export function initFlow(app: App): void {
   $('btnChangeImage').addEventListener('click', () => app.pickImage());
   $('btnRepaint').addEventListener('click', () => app.enterPaint());
   const btnSound = $('btnSound');
-  const soundIco = btnSound.querySelector('.tool-ico')!;
   btnSound.addEventListener('click', () => {
     state.muted = !state.muted;
-    soundIco.textContent = state.muted ? '🔇' : '🔊';
+    btnSound.classList.toggle('muted', state.muted);
   });
   const btnRecord = $('btnRecord');
-  const recordIco = btnRecord.querySelector('.tool-ico')!;
   btnRecord.addEventListener('click', () => app.toggleRecord());
   $('btnOptions').addEventListener('click', () => app.openPanel(true));
 
   events.on('recording', () => {
-    recordIco.textContent = state.recording ? '⏹️' : '⏺️';
     btnRecord.classList.toggle('recording', state.recording);
   });
 

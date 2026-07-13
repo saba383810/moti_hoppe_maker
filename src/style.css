@@ -60,12 +60,11 @@ button {
 .logo {
   font-size: 1.25rem;
   font-weight: 800;
-  color: var(--accent-dark);
   letter-spacing: 0.02em;
-}
-
-.logo-mochi {
-  margin-right: 6px;
+  background: linear-gradient(135deg, #ff8fab, #e0637f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .steps {
@@ -202,8 +201,19 @@ body[data-mode='empty'] #gl {
 }
 
 .dropcard-icon {
-  font-size: 44px;
-  margin-bottom: 8px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 12px;
+}
+
+.dropcard-icon svg {
+  width: 46px;
+  height: 46px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .dropcard-title {
@@ -278,8 +288,41 @@ body[data-mode='empty'] #gl {
 }
 
 .tool-ico {
-  font-size: 17px;
-  line-height: 1.1;
+  display: grid;
+  place-items: center;
+  height: 20px;
+}
+
+.tool-ico svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: var(--accent-dark);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tool-ico svg.fill {
+  fill: #ff5a76;
+  stroke: none;
+}
+
+/* おと・録画のアイコン切替（muted / recording クラスで） */
+#btnSound .ico-off,
+#btnRecord .ico-off {
+  display: none;
+}
+
+#btnSound.muted .ico-on,
+#btnRecord.recording .ico-on {
+  display: none;
+}
+
+#btnSound.muted .ico-off,
+#btnRecord.recording .ico-off {
+  display: block;
 }
 
 .tool-label {
