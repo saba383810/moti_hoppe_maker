@@ -21,6 +21,21 @@ export class Sfx {
     return this.ctx;
   }
 
+  /**
+   * iOS Safariの音声アンロック。touchend/click系のジェスチャ内で一度呼ぶ。
+   * （pointerdown起点のresumeだけだと最初の音が鳴らないことがある）
+   */
+  unlock(): void {
+    const ctx = this.ensure();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') void ctx.resume();
+    // 無音バッファを1発再生して確実に解禁する（定番のiOS対策）
+    const src = ctx.createBufferSource();
+    src.buffer = ctx.createBuffer(1, 1, 22050);
+    src.connect(ctx.destination);
+    src.start(0);
+  }
+
   /** つまんだ時の「むに」 */
   grab(): void {
     const ctx = this.ensure();

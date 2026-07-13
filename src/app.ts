@@ -90,6 +90,11 @@ export class App {
     initFlow(this);
     this.panelCtl = initPanel();
 
+    // 最初のタップ/クリックで音声をアンロック（iOS対策。touchend/click系でしか確実に効かない）
+    const unlockAudio = () => this.sfx.unlock();
+    window.addEventListener('pointerup', unlockAudio, { once: true });
+    window.addEventListener('touchend', unlockAudio, { once: true });
+
     this.recorder.onStatus = (m) => showToast(m);
     this.recorder.onStopped = () => {
       state.recording = false;
