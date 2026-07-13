@@ -172,6 +172,9 @@ export class App {
       state.maskEnabled = false;
       if (!allMochi) showToast('なにも塗ってないので、ぜんぶもちもちにしたよ');
     }
+    // あそぶ時はズーム/回転をリセットして全体表示に戻す
+    this.view.resetUser();
+    this.afterViewChange();
     setMode('play');
   }
 
