@@ -253,17 +253,54 @@ body[data-mode='empty'] #gl {
 }
 
 .tool-btn {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 54px;
+  height: 52px;
+  padding: 4px 9px;
   border: 2px solid transparent;
-  border-radius: 50%;
+  border-radius: 16px;
   background: #fff;
-  font-size: 19px;
+  font-size: 18px;
   cursor: pointer;
   box-shadow: 0 3px 10px rgba(224, 99, 127, 0.16);
   transition: transform 0.1s, border-color 0.15s;
+}
+
+.tool-ico {
+  font-size: 17px;
+  line-height: 1.1;
+}
+
+.tool-label {
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+.tool-btn.active .tool-label {
+  color: var(--accent-dark);
+}
+
+/* パネルの✕はラベルなしの丸のまま */
+.panel-head .tool-btn {
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.brush-size {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
 .tool-btn:active {
