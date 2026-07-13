@@ -49,7 +49,9 @@ export class Renderer {
     gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); // premultiplied alpha
-    gl.disable(gl.DEPTH_TEST);
+    // 引っ張り部分を手前に描くための深度（liftを頂点シェーダでzに書く）
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
   }
 
   setImage(source: HTMLCanvasElement, aspect: number): void {
@@ -82,7 +84,7 @@ export class Renderer {
 
   draw(frame: FrameUniforms): void {
     const gl = this.gl;
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if (!this.mesh || !this.imageTex) return;
 
     gl.useProgram(this.program);

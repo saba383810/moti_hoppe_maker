@@ -53,8 +53,12 @@ void main() {
   float m = uMaskEnabled > 0.5 ? textureLod(uMask, aRest, 0.0).r : 1.0;
   disp *= m / max(1.0, wsum);
 
+  // 引っ張られている部分ほど手前に描く。
+  // メッシュが折り重なった時に、静止部分が伸びたほっぺの上に被らないようにする
+  float lift = clamp(wsum, 0.0, 1.0) * m;
+
   vec3 clip = uView * vec3(iso + disp, 1.0);
-  gl_Position = vec4(clip.xy, 0.0, 1.0);
+  gl_Position = vec4(clip.xy, -0.5 * lift, 1.0);
   vUV = aRest;
 }
 `;
@@ -75,6 +79,9 @@ void main() {
     float m = texture(uMask, vUV).r;
     c *= 0.45 + 0.4 * m;                          // 未塗り部分を減光
     c += vec4(1.0, 0.55, 0.68, 1.0) * (0.35 * m); // 塗った部分をピンクに
+  } else if (c.a < 0.004) {
+    // 透明部分が深度を書いて後ろの絵を隠さないように捨てる
+    discard;
   }
   outColor = c;
 }
