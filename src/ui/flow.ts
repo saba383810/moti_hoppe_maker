@@ -37,8 +37,13 @@ export function initFlow(app: App): void {
   const brushType = $('brushType');
   brushType.querySelectorAll<HTMLButtonElement>('button').forEach((btn) => {
     btn.addEventListener('click', () => {
-      app.maskTool.brushType = btn.dataset.type === 'soft' ? 'soft' : 'hard';
+      const soft = btn.dataset.type === 'soft';
+      app.maskTool.brushType = soft ? 'soft' : 'hard';
       brushType.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+      // カーソル/プレビューの見た目も種類に合わせる
+      $('brushCursor').classList.toggle('soft', soft);
+      $('brushPreview').classList.toggle('soft', soft);
+      app.showBrushPreview();
     });
   });
   $('btnClearMask').addEventListener('click', () => app.clearMask());

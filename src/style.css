@@ -196,6 +196,18 @@ body[data-mode='empty'] #gl {
   z-index: 14;
 }
 
+/* ふんわりブラシ選択中は破線＋グラデで見た目でも区別 */
+.brush-cursor.soft,
+.brush-preview.soft {
+  border-style: dashed;
+  background: radial-gradient(
+    circle,
+    rgba(255, 143, 171, 0.4) 0%,
+    rgba(255, 143, 171, 0.18) 55%,
+    rgba(255, 143, 171, 0) 100%
+  );
+}
+
 /* ---- 空状態 ---- */
 
 .empty-state {

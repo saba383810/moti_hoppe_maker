@@ -28,6 +28,8 @@ const UNIFORM_NAMES = [
   'uTex',
   'uMaskView',
   'uPass',
+  'uTexSize',
+  'uBicubic',
 ] as const;
 
 export class Renderer {
@@ -39,6 +41,8 @@ export class Renderer {
   private maskTex: WebGLTexture;
   private view: ViewTransform;
   private aspect = 1;
+  private imageW = 1;
+  private imageH = 1;
 
   constructor(gl: WebGL2RenderingContext, view: ViewTransform) {
     this.gl = gl;
@@ -58,6 +62,8 @@ export class Renderer {
   setImage(source: HTMLCanvasElement, aspect: number): void {
     const gl = this.gl;
     this.aspect = aspect;
+    this.imageW = source.width;
+    this.imageH = source.height;
     if (this.imageTex) gl.deleteTexture(this.imageTex);
     this.imageTex = createImageTexture(gl, source);
     this.mesh?.dispose();
@@ -98,6 +104,10 @@ export class Renderer {
     gl.uniform1f(u.uBulge, frame.bulge);
     gl.uniform1f(u.uMaskEnabled, frame.maskEnabled ? 1 : 0);
     gl.uniform1f(u.uMaskView, frame.maskView ? 1 : 0);
+    gl.uniform2f(u.uTexSize, this.imageW, this.imageH);
+    // 表示px/テクセル比が1を超える（=拡大）ならバイキュービックで滑らかに
+    const pxPerTexel = (this.view.k * this.view.scale) / this.imageH;
+    gl.uniform1f(u.uBicubic, pxPerTexel > 1.05 ? 1 : 0);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.imageTex);
