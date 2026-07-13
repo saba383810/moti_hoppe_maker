@@ -31,9 +31,10 @@ export class Haptics {
 
   /** 軽いティック（つまんだ時・ボタン押下時）。ユーザージェスチャ内で呼ぶこと */
   tick(): void {
-    if (!state.haptics) return;
+    const s = state.hapticsStrength;
+    if (s <= 0) return;
     if (this.mode === 'vibrate') {
-      navigator.vibrate(10);
+      navigator.vibrate(Math.round(20 * s)); // 既定0.5で10ms
     } else if (this.mode === 'ios') {
       this.iosLabel?.click();
     }
@@ -41,9 +42,11 @@ export class Haptics {
 
   /** 強さつきの振動（離した時）。iOSは固定ティックになる */
   impact(strength: number): void {
-    if (!state.haptics) return;
+    const s = state.hapticsStrength;
+    if (s <= 0) return;
     if (this.mode === 'vibrate') {
-      navigator.vibrate(Math.round(10 + 45 * Math.min(1, Math.max(0, strength))));
+      const base = 10 + 45 * Math.min(1, Math.max(0, strength));
+      navigator.vibrate(Math.round(base * 2 * s)); // 既定0.5で従来通り
     } else if (this.mode === 'ios') {
       this.iosLabel?.click();
     }
