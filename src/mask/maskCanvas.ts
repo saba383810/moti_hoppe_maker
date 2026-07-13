@@ -59,7 +59,27 @@ export class MaskLayer {
     this.ctx.fillStyle = '#000';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.painted = false;
+    this.snap = null;
     this.invalidate();
+  }
+
+  private snap: ImageData | null = null;
+  private snapPainted = false;
+
+  /** ストローク開始時のスナップショット（2本指ジェスチャ化した時の取り消し用） */
+  beginStroke(): void {
+    this.snap = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    this.snapPainted = this.painted;
+  }
+
+  /** 塗りかけのストロークをなかったことにする */
+  cancelStroke(): void {
+    if (this.snap) {
+      this.ctx.putImageData(this.snap, 0, 0);
+      this.painted = this.snapPainted;
+      this.snap = null;
+      this.invalidate();
+    }
   }
 
   /**

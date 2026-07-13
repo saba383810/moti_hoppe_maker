@@ -36,6 +36,9 @@
       <main class="stage" id="stage">
         <canvas id="gl"></canvas>
         <div id="brushCursor" class="brush-cursor" hidden></div>
+        <button class="tool-btn view-reset" id="btnResetView" hidden>
+          <span class="tool-ico">🔄</span><span class="tool-label">表示リセット</span>
+        </button>
 
         <!-- ① 空状態 -->
         <div class="empty-state" id="emptyState">
@@ -52,7 +55,7 @@
 
         <!-- ② ぬりぬりモード -->
         <div class="paint-ui" id="paintUi" hidden>
-          <div class="hint" id="paintHint">もちもちにしたいところを ぬってね</div>
+          <div class="hint" id="paintHint">もちもちにしたいところを ぬってね（二本指で かくだい・いどう）</div>
           <div class="paint-bar">
             <button class="tool-btn active" id="btnBrush" title="ブラシ">
               <span class="tool-ico">🖌️</span><span class="tool-label">ブラシ</span>
