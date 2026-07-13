@@ -542,7 +542,7 @@ input[type='range'] {
 
 .toast-area {
   position: absolute;
-  bottom: 78px;
+  top: 14px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -563,7 +563,7 @@ input[type='range'] {
   padding: 9px 18px;
   border-radius: 14px;
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(-8px);
   transition: opacity 0.25s, transform 0.25s;
 }
 
