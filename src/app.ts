@@ -15,10 +15,12 @@ import { initFlow } from './ui/flow';
 import { initPanel, type PanelControl } from './ui/panel';
 import { showToast } from './ui/toast';
 
-// public/sample.svg のほっぺ位置（rest UV）
-const SAMPLE_CHEEKS = [
-  { u: 0.322, v: 0.586, r: 0.12 },
-  { u: 0.678, v: 0.586, r: 0.12 },
+// public/sample.svg のプリセットマスク（rest UV）。
+// 丸い体ぜんたいをうっすらもちもちに、ほっぺは全力で塗っておく
+const SAMPLE_MASK = [
+  { u: 0.5, v: 0.55, r: 0.45, value: 0.35, core: 0.6 },
+  { u: 0.322, v: 0.586, r: 0.12, value: 1, core: 0.55 },
+  { u: 0.678, v: 0.586, r: 0.12, value: 1, core: 0.55 },
 ];
 
 export class App {
@@ -132,7 +134,7 @@ export class App {
         blob.type === 'image/svg+xml' ? blob : new Blob([blob], { type: 'image/svg+xml' }),
       );
       this.setImage(img);
-      this.mask.presetCheeks(SAMPLE_CHEEKS);
+      this.mask.preset(SAMPLE_MASK);
       setMode('play');
       showToast('ほっぺは塗ってあるよ。つまんで引っぱってみて！');
     } catch {

@@ -144,19 +144,23 @@ export class MaskLayer {
     return data[(y * width + x) * 4] / 255;
   };
 
-  /** サンプル用のほっぺプリセット（rest UV座標）。フチが滑らかな全力塗りの円 */
-  presetCheeks(cheeks: { u: number; v: number; r: number }[]): void {
+  /**
+   * プリセット塗り（rest UV座標）。フチが滑らかな円スポットの集合。
+   * @param spots value=塗りの強さ(0..1)、core=この割合までベタでその先フェード
+   */
+  preset(spots: { u: number; v: number; r: number; value: number; core: number }[]): void {
     this.clear();
     const { width: w, height: h } = this.canvas;
     const ctx = this.ctx;
     ctx.globalCompositeOperation = 'lighten';
-    for (const c of cheeks) {
-      const cx = c.u * w;
-      const cy = c.v * h;
-      const r = Math.max(1, c.r * h);
+    for (const s of spots) {
+      const cx = s.u * w;
+      const cy = s.v * h;
+      const r = Math.max(1, s.r * h);
+      const c = Math.round(255 * s.value);
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      grad.addColorStop(0, '#fff');
-      grad.addColorStop(0.55, '#fff');
+      grad.addColorStop(0, `rgb(${c},${c},${c})`);
+      grad.addColorStop(s.core, `rgb(${c},${c},${c})`);
       grad.addColorStop(1, '#000');
       ctx.fillStyle = grad;
       ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
