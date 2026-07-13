@@ -61,6 +61,11 @@ export function initPanel(): PanelControl {
   bind(pBulge, (v) => (state.params.bulge = v));
   bind(pVolume, (v) => (state.volume = v));
 
+  const pHaptics = $('pHaptics');
+  pHaptics.addEventListener('change', () => {
+    state.haptics = pHaptics.checked;
+  });
+
   document.getElementById('btnResetParams')!.addEventListener('click', () => {
     state.softness = DEFAULT_SOFTNESS;
     state.params = paramsFromSoftness(DEFAULT_SOFTNESS);

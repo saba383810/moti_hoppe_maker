@@ -39,6 +39,7 @@ export const state = {
   params: paramsFromSoftness(DEFAULT_SOFTNESS) as MochiParams,
   volume: 0.7,
   muted: false,
+  haptics: true,
   recFormat: 'video' as RecFormat,
   recording: false,
 };
