@@ -27,6 +27,8 @@ export class App {
   private canvas = document.getElementById('gl') as HTMLCanvasElement;
   private stage = document.getElementById('stage')!;
   private brushCursor = document.getElementById('brushCursor')!;
+  private brushPreview = document.getElementById('brushPreview')!;
+  private brushPreviewTimer = 0;
   private fileInput = document.getElementById('fileInput') as HTMLInputElement;
   private view = new ViewTransform();
   private pinch = new PinchSystem();
@@ -234,6 +236,18 @@ export class App {
     const d = this.view.isoToCssLength(this.maskTool.brushRadius * this.pinch.S, this.canvas) * 2;
     this.brushCursor.style.width = `${d}px`;
     this.brushCursor.style.height = `${d}px`;
+  }
+
+  /** ふとさ調整中、画面中央に実寸プレビューを出す */
+  showBrushPreview(): void {
+    const d = this.view.isoToCssLength(this.maskTool.brushRadius * this.pinch.S, this.canvas) * 2;
+    this.brushPreview.style.width = `${d}px`;
+    this.brushPreview.style.height = `${d}px`;
+    this.brushPreview.hidden = false;
+    window.clearTimeout(this.brushPreviewTimer);
+    this.brushPreviewTimer = window.setTimeout(() => {
+      this.brushPreview.hidden = true;
+    }, 800);
   }
 
   // ---- 毎フレーム ----

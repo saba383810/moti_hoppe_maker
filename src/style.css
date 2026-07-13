@@ -32,6 +32,11 @@ body {
   color: var(--text);
   background: var(--bg);
   overflow: hidden;
+  /* おもちゃアプリなので全域でテキスト選択・長押しコールアウトを無効化
+     （長押しで引っ張る遊びと選択UIの相性が悪いため） */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 button {
@@ -176,6 +181,19 @@ body[data-mode='empty'] #gl {
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 5;
+}
+
+/* ふとさ調整中に画面中央へ実寸表示するプレビュー */
+.brush-preview {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 3px solid var(--accent);
+  border-radius: 50%;
+  background: rgba(255, 143, 171, 0.22);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 14;
 }
 
 /* ---- 空状態 ---- */
@@ -441,6 +459,49 @@ body[data-mode='empty'] #gl {
 input[type='range'] {
   accent-color: var(--accent);
   height: 24px;
+}
+
+/* タッチ端末ではふとさスライダーを大型化（つまみ30px・太いトラック） */
+@media (pointer: coarse) {
+  #brushSize {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 150px;
+    height: 36px;
+    background: transparent;
+  }
+
+  #brushSize::-webkit-slider-runnable-track {
+    height: 10px;
+    border-radius: 5px;
+    background: var(--accent-soft);
+  }
+
+  #brushSize::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 30px;
+    height: 30px;
+    margin-top: -10px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(224, 99, 127, 0.4);
+  }
+
+  #brushSize::-moz-range-track {
+    height: 10px;
+    border-radius: 5px;
+    background: var(--accent-soft);
+  }
+
+  #brushSize::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(224, 99, 127, 0.4);
+  }
 }
 
 /* ---- ドロップオーバーレイ / トースト ---- */

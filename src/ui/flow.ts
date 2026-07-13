@@ -32,6 +32,7 @@ export function initFlow(app: App): void {
   brushSize.addEventListener('input', () => {
     app.maskTool.brushRadius = parseFloat(brushSize.value);
     app.updateBrushCursorSize();
+    app.showBrushPreview();
   });
   const brushType = $('brushType');
   brushType.querySelectorAll<HTMLButtonElement>('button').forEach((btn) => {
