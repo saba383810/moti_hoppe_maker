@@ -141,8 +141,16 @@ export class App {
       );
       this.setImage(img);
       this.mask.preset(SAMPLE_MASK);
-      // 体の輪郭ぞいは最大でもちもちに（ふちを引っぱると可愛い）
-      this.mask.presetRing(0.5, 0.555, 0.389, 0.344, 0.07, 1);
+      // 体+耳の実シルエットに沿った縁取りを最大でもちもちに
+      this.mask.presetOutline((ctx, w, h) => {
+        ctx.beginPath();
+        ctx.ellipse(0.5 * w, 0.5547 * h, 0.3887 * h, 0.3438 * h, 0, 0, Math.PI * 2);
+        ctx.moveTo(0.3184 * w + 0.084 * h, 0.2461 * h);
+        ctx.arc(0.3184 * w, 0.2461 * h, 0.084 * h, 0, Math.PI * 2);
+        ctx.moveTo(0.6816 * w + 0.084 * h, 0.2461 * h);
+        ctx.arc(0.6816 * w, 0.2461 * h, 0.084 * h, 0, Math.PI * 2);
+        ctx.fill();
+      }, 0.07, 1);
       setMode('play');
       showToast('ほっぺは塗ってあるよ。つまんで引っぱってみて！');
     } catch {

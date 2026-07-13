@@ -170,25 +170,71 @@ export class MaskLayer {
     this.invalidate();
   }
 
-  /** プリセット用の楕円リング塗り（体の輪郭などに使う）。preset()の後に呼ぶ */
-  presetRing(
-    u: number,
-    v: number,
-    rx: number,
-    ry: number,
+  /**
+   * プリセット用のシルエット縁取り塗り。preset()の後に呼ぶ。
+   * shapeでシルエット（複数図形の合併でよい）をfillし、距離変換で
+   * 「輪郭からwidthIso以内の内側」をvalueで塗る。円以外の輪郭にも沿う。
+   */
+  presetOutline(
+    shape: (ctx: CanvasRenderingContext2D, w: number, h: number) => void,
     widthIso: number,
     value: number,
   ): void {
     const { width: w, height: h } = this.canvas;
-    const ctx = this.ctx;
+    // 1) シルエットを一時canvasに描く
+    const tmp = document.createElement('canvas');
+    tmp.width = w;
+    tmp.height = h;
+    const tctx = tmp.getContext('2d', { willReadFrequently: true })!;
+    tctx.fillStyle = '#fff';
+    shape(tctx, w, h);
+    const silh = tctx.getImageData(0, 0, w, h).data;
+
+    // 2) 2パスのchamfer距離変換（外側からの距離）
+    const INF = 1e9;
+    const d = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) d[i] = silh[i * 4 + 3] > 127 ? INF : 0;
+    const D = Math.SQRT2;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = y * w + x;
+        if (x > 0) d[i] = Math.min(d[i], d[i - 1] + 1);
+        if (y > 0) {
+          d[i] = Math.min(d[i], d[i - w] + 1);
+          if (x > 0) d[i] = Math.min(d[i], d[i - w - 1] + D);
+          if (x < w - 1) d[i] = Math.min(d[i], d[i - w + 1] + D);
+        }
+      }
+    }
+    for (let y = h - 1; y >= 0; y--) {
+      for (let x = w - 1; x >= 0; x--) {
+        const i = y * w + x;
+        if (x < w - 1) d[i] = Math.min(d[i], d[i + 1] + 1);
+        if (y < h - 1) {
+          d[i] = Math.min(d[i], d[i + w] + 1);
+          if (x < w - 1) d[i] = Math.min(d[i], d[i + w + 1] + D);
+          if (x > 0) d[i] = Math.min(d[i], d[i + w - 1] + D);
+        }
+      }
+    }
+
+    // 3) 縁取り画素をrim canvasに書いてlighten合成
+    const widthPx = Math.max(1, widthIso * h);
     const c = Math.round(255 * value);
-    ctx.globalCompositeOperation = 'lighten';
-    ctx.strokeStyle = `rgb(${c},${c},${c})`;
-    ctx.lineWidth = Math.max(1, widthIso * h);
-    ctx.beginPath();
-    ctx.ellipse(u * w, v * h, rx * h, ry * h, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.globalCompositeOperation = 'source-over';
+    const rim = tctx.createImageData(w, h);
+    for (let i = 0; i < w * h; i++) {
+      if (d[i] > 0 && d[i] <= widthPx) {
+        rim.data[i * 4] = c;
+        rim.data[i * 4 + 1] = c;
+        rim.data[i * 4 + 2] = c;
+        rim.data[i * 4 + 3] = 255;
+      }
+    }
+    tctx.clearRect(0, 0, w, h);
+    tctx.putImageData(rim, 0, 0);
+    this.ctx.globalCompositeOperation = 'lighten';
+    this.ctx.drawImage(tmp, 0, 0);
+    this.ctx.globalCompositeOperation = 'source-over';
     this.painted = true;
     this.invalidate();
   }
