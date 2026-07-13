@@ -97,8 +97,8 @@ export class MaskLayer {
     const cy = v * h;
     const r = Math.max(1, radiusIso * h);
     const ctx = this.ctx;
-    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
     if (soft) {
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
       const color = erase ? '0,0,0' : '255,255,255';
       const flow = 0.12; // 1スタンプあたりの最大アルファ。小さいほど「じわっと」育つ
       const stops: [number, number][] = [
@@ -111,20 +111,16 @@ export class MaskLayer {
         grad.addColorStop(pos, `rgba(${color},${(flow * shape).toFixed(4)})`);
       }
       ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = grad;
+      ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
     } else {
-      const stops: [number, number][] = [
-        [0, 1],
-        [0.85, 1],
-        [1, 0],
-      ];
-      for (const [pos, val] of stops) {
-        const c = Math.round(255 * (erase ? 1 - val : val));
-        grad.addColorStop(pos, `rgb(${c},${c},${c})`);
-      }
+      // 円の全域をまるまる最大値でベタ塗り（縁のフェードなし）
       ctx.globalCompositeOperation = erase ? 'darken' : 'lighten';
+      ctx.fillStyle = erase ? '#000' : '#fff';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
     }
-    ctx.fillStyle = grad;
-    ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
     ctx.globalCompositeOperation = 'source-over';
     if (!erase) this.painted = true;
     this.invalidate();
