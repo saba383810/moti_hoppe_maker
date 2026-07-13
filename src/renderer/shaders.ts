@@ -16,6 +16,7 @@ uniform vec2 uGrabPull[${CONFIG.maxGrabs}]; // pull.xy(iso)
 uniform float uBulge;               // ぷっくり量 κ
 uniform sampler2D uMask;
 uniform float uMaskEnabled;
+uniform vec2 uMaskCell; // メッシュ1セルのrest UVサイズ（マスク平滑サンプル用）
 
 out vec2 vUV;
 
@@ -23,6 +24,16 @@ out vec2 vUV;
 float falloff(float t) {
   float s = 1.0 - t;
   return s * s * s * (6.0 * t * t + 3.0 * t + 1.0);
+}
+
+// マスクを半セルずらしの4タップ平均で読む。
+// くっきりマスクの境界が頂点解像度で折れて（ガビガビに）見えるのを防ぐ
+float maskAt(vec2 uv) {
+  vec2 h = uMaskCell * 0.5;
+  return (textureLod(uMask, uv + vec2(-h.x, -h.y), 0.0).r +
+          textureLod(uMask, uv + vec2(h.x, -h.y), 0.0).r +
+          textureLod(uMask, uv + vec2(-h.x, h.y), 0.0).r +
+          textureLod(uMask, uv + vec2(h.x, h.y), 0.0).r) * 0.25;
 }
 
 // t=1/3でピーク1のリング形状（anchor周囲の外向き膨張＝体積感）
@@ -50,7 +61,7 @@ void main() {
   }
 
   // 頂点位置のマスク重み + grab重なり時の過剰変位の正規化
-  float m = uMaskEnabled > 0.5 ? textureLod(uMask, aRest, 0.0).r : 1.0;
+  float m = uMaskEnabled > 0.5 ? maskAt(aRest) : 1.0;
   disp *= m / max(1.0, wsum);
 
   // 引っ張られている部分ほど手前に描く。

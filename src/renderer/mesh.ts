@@ -3,6 +3,8 @@ import { CONFIG } from '../config';
 export interface Mesh {
   vao: WebGLVertexArrayObject;
   indexCount: number;
+  segsX: number;
+  segsY: number;
   dispose(): void;
 }
 
@@ -60,6 +62,8 @@ export function createMesh(gl: WebGL2RenderingContext, aspect: number): Mesh {
   return {
     vao,
     indexCount: indices.length,
+    segsX,
+    segsY,
     dispose() {
       gl.deleteVertexArray(vao);
       gl.deleteBuffer(vbo);

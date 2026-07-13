@@ -30,6 +30,7 @@ const UNIFORM_NAMES = [
   'uPass',
   'uTexSize',
   'uBicubic',
+  'uMaskCell',
 ] as const;
 
 export class Renderer {
@@ -108,6 +109,7 @@ export class Renderer {
     // 表示px/テクセル比が1を超える（=拡大）ならバイキュービックで滑らかに
     const pxPerTexel = (this.view.k * this.view.scale) / this.imageH;
     gl.uniform1f(u.uBicubic, pxPerTexel > 1.05 ? 1 : 0);
+    gl.uniform2f(u.uMaskCell, 1 / this.mesh.segsX, 1 / this.mesh.segsY);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.imageTex);

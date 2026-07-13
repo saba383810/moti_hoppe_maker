@@ -3,12 +3,12 @@
 
 export const CONFIG = {
   maxGrabs: 8,
-  meshShortSegs: 96,
-  meshMaxSegs: 160,
+  meshShortSegs: 128,
+  meshMaxSegs: 192,
   imageMaxSide: 2048,
   alphaSampleMaxSide: 1024,
   fitRatio: 0.76, // キャンバスに対する画像のフィット率。残りが伸びしろマージン
-  dprCap: 2,
+  dprCap: 3, // DPR3端末（iPhone等）で縮小→拡大のボケ/ジャギーを出さない
   maskSize: 512,
   // 変形weight用マスクのぼかし（長辺比）。メッシュ折返しのギザつき防止の最小限に留め、
   // 塗った範囲の精度は守る（滑らかさはふんわりブラシで意図的に付ける）
