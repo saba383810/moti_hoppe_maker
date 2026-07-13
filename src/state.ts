@@ -39,8 +39,7 @@ export const state = {
   params: paramsFromSoftness(DEFAULT_SOFTNESS) as MochiParams,
   volume: 0.7,
   muted: false,
-  /** 振動の強さ 0..1（0=なし）。音量とは独立 */
-  hapticsStrength: 0.5,
+  haptics: true,
   recFormat: 'video' as RecFormat,
   recording: false,
 };
