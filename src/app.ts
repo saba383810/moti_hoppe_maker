@@ -379,7 +379,10 @@ export class App {
           e.pointerId,
           this.view.canvasPxFromClient(e.clientX, e.clientY, this.canvas),
         );
-        this.paintAt(e);
+        // タッチはイベントが間引かれるので、coalescedイベントで細かくなぞる
+        const coalesced =
+          typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : [];
+        for (const ce of coalesced.length > 0 ? coalesced : [e]) this.paintAt(ce);
       }
     },
     up: (e) => {
