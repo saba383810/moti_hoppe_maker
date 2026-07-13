@@ -83,11 +83,12 @@ export class MaskLayer {
   }
 
   /**
-   * ソフトブラシスタンプ。
+   * ブラシスタンプ。
    * @param u,v rest UV
    * @param radiusIso iso空間での半径（高さ=1基準）
+   * @param soft true=ふんわり（フチを広くぼかす）/ false=くっきり
    */
-  stamp(u: number, v: number, radiusIso: number, erase: boolean): void {
+  stamp(u: number, v: number, radiusIso: number, erase: boolean, soft = false): void {
     const { width: w, height: h } = this.canvas;
     const cx = u * w;
     const cy = v * h;
@@ -95,9 +96,16 @@ export class MaskLayer {
     const ctx = this.ctx;
     const color = erase ? '0,0,0' : '255,255,255';
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    grad.addColorStop(0, `rgba(${color},1)`);
-    grad.addColorStop(0.5, `rgba(${color},1)`);
-    grad.addColorStop(1, `rgba(${color},0)`);
+    if (soft) {
+      grad.addColorStop(0, `rgba(${color},1)`);
+      grad.addColorStop(0.35, `rgba(${color},0.9)`);
+      grad.addColorStop(0.65, `rgba(${color},0.45)`);
+      grad.addColorStop(1, `rgba(${color},0)`);
+    } else {
+      grad.addColorStop(0, `rgba(${color},1)`);
+      grad.addColorStop(0.85, `rgba(${color},1)`);
+      grad.addColorStop(1, `rgba(${color},0)`);
+    }
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = grad;
     ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
@@ -126,7 +134,7 @@ export class MaskLayer {
   /** サンプル用のほっぺプリセット（rest UV座標） */
   presetCheeks(cheeks: { u: number; v: number; r: number }[]): void {
     this.clear();
-    for (const c of cheeks) this.stamp(c.u, c.v, c.r, false);
+    for (const c of cheeks) this.stamp(c.u, c.v, c.r, false, true);
     this.painted = true;
   }
 }

@@ -33,6 +33,13 @@ export function initFlow(app: App): void {
     app.maskTool.brushRadius = parseFloat(brushSize.value);
     app.updateBrushCursorSize();
   });
+  const brushType = $('brushType');
+  brushType.querySelectorAll<HTMLButtonElement>('button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      app.maskTool.brushType = btn.dataset.type === 'soft' ? 'soft' : 'hard';
+      brushType.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b === btn));
+    });
+  });
   $('btnClearMask').addEventListener('click', () => app.clearMask());
   $('btnAllMochi').addEventListener('click', () => app.enterPlay(true));
   $('btnPlay').addEventListener('click', () => app.enterPlay());
