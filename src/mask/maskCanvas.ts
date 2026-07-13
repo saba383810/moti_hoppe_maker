@@ -5,6 +5,10 @@ import { CONFIG } from '../config';
 export class MaskLayer {
   readonly canvas = document.createElement('canvas');
   private ctx: CanvasRenderingContext2D;
+  /** 変形weight用のぼかし済みマスク（塗りの角を丸めて輪郭を円形に保つ） */
+  private blurCanvas = document.createElement('canvas');
+  private blurCtx: CanvasRenderingContext2D;
+  private blurDirty = true;
   /** テクスチャ再アップロードが必要 */
   dirty = false;
   /** ブラシで一度でも塗られたか（「あそぶ！」時の空マスク判定用） */
@@ -15,6 +19,7 @@ export class MaskLayer {
     this.canvas.width = 1;
     this.canvas.height = 1;
     this.ctx = this.canvas.getContext('2d', { alpha: false, willReadFrequently: true })!;
+    this.blurCtx = this.blurCanvas.getContext('2d', { alpha: false, willReadFrequently: true })!;
   }
 
   /** 画像ロード時に呼ぶ。長辺 = CONFIG.maskSize、アスペクト一致 */
@@ -24,7 +29,29 @@ export class MaskLayer {
     const h = aspect >= 1 ? Math.max(1, Math.round(size / aspect)) : size;
     this.canvas.width = w;
     this.canvas.height = h;
+    this.blurCanvas.width = w;
+    this.blurCanvas.height = h;
     this.clear();
+  }
+
+  private ensureBlur(): void {
+    if (!this.blurDirty) return;
+    const { width: w, height: h } = this.canvas;
+    const r = Math.max(2, Math.round(Math.max(w, h) * CONFIG.maskBlur));
+    const ctx = this.blurCtx;
+    ctx.filter = 'none';
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, w, h);
+    ctx.filter = `blur(${r}px)`;
+    ctx.drawImage(this.canvas, 0, 0);
+    ctx.filter = 'none';
+    this.blurDirty = false;
+  }
+
+  /** GPUへアップロードするテクスチャ元（ぼかし済み） */
+  textureSource(): HTMLCanvasElement {
+    this.ensureBlur();
+    return this.blurCanvas;
   }
 
   clear(): void {
@@ -60,13 +87,15 @@ export class MaskLayer {
 
   private invalidate(): void {
     this.dirty = true;
+    this.blurDirty = true;
     this.data = null;
   }
 
-  /** rest UVでのマスク値(0..1) */
+  /** rest UVでのマスク値(0..1)。シェーダと同じぼかし済みマスクを読む */
   sample = (u: number, v: number): number => {
     if (!this.data) {
-      this.data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+      this.ensureBlur();
+      this.data = this.blurCtx.getImageData(0, 0, this.blurCanvas.width, this.blurCanvas.height);
     }
     const { data, width, height } = this.data;
     const x = Math.min(width - 1, Math.max(0, Math.round(u * (width - 1))));

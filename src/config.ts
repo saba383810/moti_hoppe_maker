@@ -3,13 +3,15 @@
 
 export const CONFIG = {
   maxGrabs: 8,
-  meshShortSegs: 48,
-  meshMaxSegs: 96,
+  meshShortSegs: 96,
+  meshMaxSegs: 160,
   imageMaxSide: 2048,
   alphaSampleMaxSide: 1024,
   fitRatio: 0.76, // キャンバスに対する画像のフィット率。残りが伸びしろマージン
   dprCap: 2,
   maskSize: 512,
+  // 変形weight用マスクのぼかし（長辺比）。塗りの角を丸め、伸ばした時の輪郭を円形に保つ
+  maskBlur: 0.02,
 
   // ドラッグ追従スプリング（固定。質量感＋リリース時の速度連続のため）
   dragOmega: 80, // rad/s ≒ 25msの遅れ

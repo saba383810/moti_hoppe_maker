@@ -197,7 +197,7 @@ export class App {
     this.pinch.update(dt);
 
     if (this.mask.dirty && this.renderer) {
-      this.renderer.updateMask(this.mask.canvas);
+      this.renderer.updateMask(this.mask.textureSource());
       this.mask.dirty = false;
       this.needsRender = true;
     }
@@ -305,7 +305,7 @@ export class App {
     this.renderer.resize(this.canvas.width, this.canvas.height);
     if (state.image) {
       this.renderer.setImage(state.image.source, state.image.aspect);
-      this.renderer.updateMask(this.mask.canvas);
+      this.renderer.updateMask(this.mask.textureSource());
     }
     this.needsRender = true;
   }
