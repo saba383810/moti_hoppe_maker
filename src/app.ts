@@ -238,16 +238,21 @@ export class App {
     this.brushCursor.style.height = `${d}px`;
   }
 
-  /** ふとさ調整中、画面中央に実寸プレビューを出す */
+  /** ふとさ調整中、画面中央に実寸プレビューを出す（追従カーソルは重複するので消す） */
   showBrushPreview(): void {
     const d = this.view.isoToCssLength(this.maskTool.brushRadius * this.pinch.S, this.canvas) * 2;
     this.brushPreview.style.width = `${d}px`;
     this.brushPreview.style.height = `${d}px`;
     this.brushPreview.hidden = false;
+    this.brushCursor.hidden = true;
     window.clearTimeout(this.brushPreviewTimer);
-    this.brushPreviewTimer = window.setTimeout(() => {
-      this.brushPreview.hidden = true;
-    }, 800);
+    this.brushPreviewTimer = window.setTimeout(() => this.hideBrushPreview(), 800);
+  }
+
+  private hideBrushPreview(): void {
+    window.clearTimeout(this.brushPreviewTimer);
+    this.brushPreview.hidden = true;
+    this.brushCursor.hidden = state.mode !== 'paint';
   }
 
   // ---- 毎フレーム ----
@@ -343,6 +348,7 @@ export class App {
 
   private paintHandlers: PointerHandlers = {
     down: (e) => {
+      if (!this.brushPreview.hidden) this.hideBrushPreview();
       const p = this.view.canvasPxFromClient(e.clientX, e.clientY, this.canvas);
       this.pointers.set(e.pointerId, p);
       if (this.pointers.size === 1 && !this.gestureActive) {
