@@ -38,8 +38,8 @@ export class App {
 
   private needsRender = true;
   private lastT = 0;
-  /** ぬりモードのアクティブポインタ（canvas px）。2本になったらジェスチャ */
-  private paintPointers = new Map<number, { x: number; y: number }>();
+  /** アクティブポインタ（canvas px）。2本指でジェスチャ判定に使う */
+  private pointers = new Map<number, { x: number; y: number }>();
   private gestureActive = false;
   private btnResetView = document.getElementById('btnResetView') as HTMLButtonElement;
   private debug = new URLSearchParams(location.search).has('debug');
@@ -163,7 +163,28 @@ export class App {
     if (!state.image) return;
     this.pinch.releaseAll();
     state.maskEnabled = true;
+    this.resetGesture();
     setMode('paint');
+  }
+
+  private resetGesture(): void {
+    this.pointers.clear();
+    this.gestureActive = false;
+  }
+
+  /** 2本指ジェスチャの共通move処理（ぬり/あそぶ両モード） */
+  private handleGestureMove(e: PointerEvent): void {
+    if (!this.pointers.has(e.pointerId)) return;
+    const pts = [...this.pointers.entries()];
+    if (pts.length < 2) return;
+    const [id1, p1] = pts[0];
+    const [id2, p2] = pts[1];
+    const q = this.view.canvasPxFromClient(e.clientX, e.clientY, this.canvas);
+    if (e.pointerId === id1) this.view.applyGesture(p1, p2, q, p2);
+    else if (e.pointerId === id2) this.view.applyGesture(p1, p2, p1, q);
+    else return;
+    this.pointers.set(e.pointerId, q);
+    this.afterViewChange();
   }
 
   enterPlay(allMochi = false): void {
@@ -172,9 +193,7 @@ export class App {
       state.maskEnabled = false;
       if (!allMochi) showToast('なにも塗ってないので、ぜんぶもちもちにしたよ');
     }
-    // あそぶ時はズーム/回転をリセットして全体表示に戻す
-    this.view.resetUser();
-    this.afterViewChange();
+    this.resetGesture();
     setMode('play');
   }
 
@@ -267,13 +286,39 @@ export class App {
 
   private playHandlers: PointerHandlers = {
     down: (e) => {
+      const p = this.view.canvasPxFromClient(e.clientX, e.clientY, this.canvas);
+      this.pointers.set(e.pointerId, p);
+      if (this.gestureActive) return;
       const iso = this.view.isoFromClient(e.clientX, e.clientY, this.canvas);
-      if (this.pinch.tryGrab(e.pointerId, iso)) this.sfx.grab();
+      if (this.pinch.tryGrab(e.pointerId, iso)) {
+        this.sfx.grab();
+      } else if (this.pointers.size >= 2) {
+        // つかめない場所に2本目 → ジェスチャモード。つまみ中のほっぺは離す
+        this.gestureActive = true;
+        for (const g of this.pinch.grabs) {
+          if (!g.released) this.pinch.release(g.pointerId);
+        }
+      }
     },
     move: (e) => {
+      if (this.gestureActive) {
+        this.handleGestureMove(e);
+        return;
+      }
+      if (this.pointers.has(e.pointerId)) {
+        this.pointers.set(
+          e.pointerId,
+          this.view.canvasPxFromClient(e.clientX, e.clientY, this.canvas),
+        );
+      }
       this.pinch.move(e.pointerId, this.view.isoFromClient(e.clientX, e.clientY, this.canvas));
     },
     up: (e) => {
+      this.pointers.delete(e.pointerId);
+      if (this.gestureActive) {
+        if (this.pointers.size === 0) this.gestureActive = false;
+        return;
+      }
       const g = this.pinch.grabs.find((g) => g.pointerId === e.pointerId && !g.released);
       if (!g) return;
       const intensity = this.pinch.intensityOf(g);
@@ -285,12 +330,12 @@ export class App {
   private paintHandlers: PointerHandlers = {
     down: (e) => {
       const p = this.view.canvasPxFromClient(e.clientX, e.clientY, this.canvas);
-      this.paintPointers.set(e.pointerId, p);
-      if (this.paintPointers.size === 1 && !this.gestureActive) {
+      this.pointers.set(e.pointerId, p);
+      if (this.pointers.size === 1 && !this.gestureActive) {
         this.mask.beginStroke();
         this.moveBrushCursor(e);
         this.paintAt(e);
-      } else if (this.paintPointers.size === 2 && !this.gestureActive) {
+      } else if (this.pointers.size === 2 && !this.gestureActive) {
         // 2本目の指が来たらジェスチャモードへ。塗りかけの線は取り消す
         this.gestureActive = true;
         this.maskTool.endStroke();
@@ -300,22 +345,12 @@ export class App {
     },
     move: (e) => {
       if (this.gestureActive) {
-        if (!this.paintPointers.has(e.pointerId)) return;
-        const pts = [...this.paintPointers.entries()];
-        if (pts.length < 2) return;
-        const [id1, p1] = pts[0];
-        const [id2, p2] = pts[1];
-        const q = this.view.canvasPxFromClient(e.clientX, e.clientY, this.canvas);
-        if (e.pointerId === id1) this.view.applyGesture(p1, p2, q, p2);
-        else if (e.pointerId === id2) this.view.applyGesture(p1, p2, p1, q);
-        else return;
-        this.paintPointers.set(e.pointerId, q);
-        this.afterViewChange();
+        this.handleGestureMove(e);
         return;
       }
       this.moveBrushCursor(e);
-      if (this.paintPointers.has(e.pointerId)) {
-        this.paintPointers.set(
+      if (this.pointers.has(e.pointerId)) {
+        this.pointers.set(
           e.pointerId,
           this.view.canvasPxFromClient(e.clientX, e.clientY, this.canvas),
         );
@@ -323,9 +358,9 @@ export class App {
       }
     },
     up: (e) => {
-      if (this.paintPointers.delete(e.pointerId)) {
+      if (this.pointers.delete(e.pointerId)) {
         if (!this.gestureActive) this.maskTool.endStroke();
-        if (this.paintPointers.size === 0) {
+        if (this.pointers.size === 0) {
           // 全部の指が離れるまで塗りは再開しない（誤爆防止）
           this.gestureActive = false;
           this.brushCursor.hidden = state.mode !== 'paint';
