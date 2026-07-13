@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- もちまる: もちほっぺ・メーカーのオリジナルサンプルキャラクター -->
+  <defs>
+    <radialGradient id="body" cx="0.5" cy="0.42" r="0.75">
+      <stop offset="0%" stop-color="#fffdf9"/>
+      <stop offset="78%" stop-color="#fff3e8"/>
+      <stop offset="100%" stop-color="#ffe7d6"/>
+    </radialGradient>
+    <radialGradient id="cheek" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#ffa8c0" stop-opacity="0.95"/>
+      <stop offset="60%" stop-color="#ffb9cd" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#ffc9d9" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ear" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#ffd3de"/>
+      <stop offset="100%" stop-color="#ffc0d0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 足元の影 -->
+  <ellipse cx="512" cy="912" rx="330" ry="46" fill="#f4d8cc" opacity="0.55"/>
+
+  <!-- 耳 -->
+  <circle cx="326" cy="252" r="86" fill="url(#body)"/>
+  <circle cx="698" cy="252" r="86" fill="url(#body)"/>
+  <circle cx="326" cy="252" r="44" fill="url(#ear)"/>
+  <circle cx="698" cy="252" r="44" fill="url(#ear)"/>
+
+  <!-- 体（もち） -->
+  <ellipse cx="512" cy="568" rx="398" ry="352" fill="url(#body)"/>
+
+  <!-- ハイライト -->
+  <ellipse cx="400" cy="332" rx="150" ry="72" fill="#ffffff" opacity="0.55" transform="rotate(-14 400 332)"/>
+
+  <!-- ほっぺ（ここをつまむ！） -->
+  <circle cx="330" cy="600" r="108" fill="url(#cheek)"/>
+  <circle cx="694" cy="600" r="108" fill="url(#cheek)"/>
+
+  <!-- 目（にっこり） -->
+  <path d="M 366 508 q 32 34 64 0" fill="none" stroke="#6b4a3f" stroke-width="17" stroke-linecap="round"/>
+  <path d="M 594 508 q 32 34 64 0" fill="none" stroke="#6b4a3f" stroke-width="17" stroke-linecap="round"/>
+
+  <!-- くち（ω） -->
+  <path d="M 478 596 q 17 22 34 0 q 17 22 34 0" fill="none" stroke="#6b4a3f" stroke-width="13" stroke-linecap="round"/>
+</svg>

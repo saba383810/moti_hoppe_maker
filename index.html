@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>もちほっぺ・メーカー</title>
+    <meta name="description" content="すきな画像のほっぺを、もちもち引っぱって遊べるおもちゃ" />
+    <meta property="og:title" content="もちほっぺ・メーカー" />
+    <meta property="og:description" content="すきな画像のほっぺを、もちもち引っぱって遊べるおもちゃ" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍡</text></svg>"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body data-mode="empty">
+    <div id="app">
+      <header class="header">
+        <h1 class="logo"><span class="logo-mochi">🍡</span>もちほっぺ・メーカー</h1>
+        <nav class="steps" aria-label="手順">
+          <button class="step" id="stepLoad"><span class="step-num">1</span>いれる</button>
+          <span class="step-arrow">▸</span>
+          <button class="step" id="stepPaint" disabled><span class="step-num">2</span>ぬる</button>
+          <span class="step-arrow">▸</span>
+          <button class="step" id="stepPlay" disabled><span class="step-num">3</span>あそぶ</button>
+        </nav>
+      </header>
+
+      <main class="stage" id="stage">
+        <canvas id="gl"></canvas>
+        <div id="brushCursor" class="brush-cursor" hidden></div>
+
+        <!-- ① 空状態 -->
+        <div class="empty-state" id="emptyState">
+          <div class="dropcard">
+            <div class="dropcard-icon">🖼️</div>
+            <p class="dropcard-title">画像をここにドロップ</p>
+            <p class="dropcard-sub">ファイル選択・ペースト（Ctrl+V）でもOK</p>
+            <div class="dropcard-actions">
+              <button class="btn btn-primary" id="btnPick">画像をえらぶ</button>
+              <button class="btn btn-ghost" id="btnSample">サンプルであそぶ</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ② ぬりぬりモード -->
+        <div class="paint-ui" id="paintUi" hidden>
+          <div class="hint" id="paintHint">もちもちにしたいところを ぬってね</div>
+          <div class="paint-bar">
+            <button class="tool-btn active" id="btnBrush" title="ブラシ" aria-label="ブラシ">🖌️</button>
+            <button class="tool-btn" id="btnEraser" title="消しゴム" aria-label="消しゴム">🧽</button>
+            <input type="range" id="brushSize" min="0.03" max="0.20" step="0.005" value="0.07" title="ブラシの大きさ" />
+            <button class="tool-btn" id="btnClearMask" title="ぜんぶ消す" aria-label="ぜんぶ消す">🗑️</button>
+            <span class="paint-sep"></span>
+            <button class="btn btn-ghost" id="btnAllMochi">ぜんぶもちもち</button>
+            <button class="btn btn-primary" id="btnPlay">あそぶ！</button>
+          </div>
+        </div>
+
+        <!-- ③ あそぶモード -->
+        <div class="toolbar" id="toolbar" hidden>
+          <button class="tool-btn" id="btnChangeImage" title="画像をかえる" aria-label="画像をかえる">🖼️</button>
+          <button class="tool-btn" id="btnRepaint" title="ほっぺをぬりなおす" aria-label="ほっぺをぬりなおす">🖌️</button>
+          <button class="tool-btn" id="btnSound" title="効果音" aria-label="効果音">🔊</button>
+          <button class="tool-btn" id="btnRecord" title="録画" aria-label="録画">⏺️</button>
+          <button class="tool-btn" id="btnOptions" title="せってい" aria-label="せってい">⚙️</button>
+        </div>
+
+        <div class="drop-overlay" id="dropOverlay" hidden><div class="drop-overlay-text">ここにドロップ！</div></div>
+        <div class="toast-area" id="toastArea"></div>
+        <div class="fps" id="fps" hidden></div>
+      </main>
+
+      <!-- せっていパネル -->
+      <div class="panel-backdrop" id="panelBackdrop" hidden></div>
+      <aside class="panel" id="panel" hidden aria-label="せってい">
+        <div class="panel-head">
+          <h2>せってい</h2>
+          <button class="tool-btn" id="btnClosePanel" aria-label="とじる">✕</button>
+        </div>
+        <section class="panel-sec">
+          <h3>もちもち加減</h3>
+          <label class="slider-row">
+            <span>やわらかさ</span>
+            <input type="range" id="pSoftness" min="0" max="1" step="0.01" value="0.5" />
+          </label>
+          <details class="panel-details">
+            <summary>こまかい調整</summary>
+            <label class="slider-row">
+              <span>つまみ範囲</span>
+              <input type="range" id="pRadius" min="0.08" max="0.40" step="0.005" value="0.22" />
+            </label>
+            <label class="slider-row">
+              <span>のびる量</span>
+              <input type="range" id="pStretch" min="0.30" max="1.00" step="0.01" value="0.55" />
+            </label>
+            <label class="slider-row">
+              <span>ゆれの速さ</span>
+              <input type="range" id="pFreq" min="6" max="13" step="0.1" value="9" />
+            </label>
+            <label class="slider-row">
+              <span>ゆれの回数</span>
+              <input type="range" id="pWobble" min="0" max="1" step="0.01" value="0.55" />
+            </label>
+            <label class="slider-row">
+              <span>ぷっくり</span>
+              <input type="range" id="pBulge" min="0" max="0.25" step="0.005" value="0.10" />
+            </label>
+          </details>
+          <button class="btn btn-ghost btn-small" id="btnResetParams">おまかせに戻す</button>
+        </section>
+        <section class="panel-sec">
+          <h3>おと</h3>
+          <label class="slider-row">
+            <span>音量</span>
+            <input type="range" id="pVolume" min="0" max="1" step="0.01" value="0.7" />
+          </label>
+        </section>
+        <section class="panel-sec">
+          <h3>録画</h3>
+          <div class="seg" id="recFormat">
+            <button data-fmt="video" class="active">動画</button>
+            <button data-fmt="gif">GIF</button>
+          </div>
+          <p class="note">GIFは最長6秒・すこし粗めになります</p>
+        </section>
+      </aside>
+
+      <!-- WebGL2非対応 -->
+      <div class="fatal-card" id="fatalCard" hidden>
+        <div class="dropcard">
+          <div class="dropcard-icon">😢</div>
+          <p class="dropcard-title">このブラウザでは あそべません</p>
+          <p class="dropcard-sub">WebGL2に対応したブラウザ（Chrome / Edge / Safari / Firefoxの新しめのもの）でひらいてね</p>
+        </div>
+      </div>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*" hidden />
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
