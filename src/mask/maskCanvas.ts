@@ -84,12 +84,12 @@ export class MaskLayer {
 
   /**
    * ブラシスタンプ。
-   * 不透明グレースケール + lighten/darken（=画素ごとのmax/min）で合成する。
-   * 半透明の加算だとストローク中の重ね打ちでグラデが飽和して
-   * ふんわりがくっきりと同じになってしまうため、maxで「濃い方を残す」方式にする。
+   * - くっきり: 不透明グレースケール + lighten/darken（=max/min）。常に最大値で塗る
+   * - ふんわり: 低アルファの加算（フロー型エアブラシ）。塗り重ねるほど徐々に濃くなり、
+   *   くっきりの最大値へ漸近する
    * @param u,v rest UV
    * @param radiusIso iso空間での半径（高さ=1基準）
-   * @param soft true=ふんわり（フチを広くぼかす）/ false=くっきり
+   * @param soft true=ふんわり / false=くっきり
    */
   stamp(u: number, v: number, radiusIso: number, erase: boolean, soft = false): void {
     const { width: w, height: h } = this.canvas;
@@ -98,23 +98,31 @@ export class MaskLayer {
     const r = Math.max(1, radiusIso * h);
     const ctx = this.ctx;
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    const stops: [number, number][] = soft
-      ? [
-          [0, 1],
-          [0.35, 0.85],
-          [0.65, 0.4],
-          [1, 0],
-        ]
-      : [
-          [0, 1],
-          [0.85, 1],
-          [1, 0],
-        ];
-    for (const [pos, val] of stops) {
-      const c = Math.round(255 * (erase ? 1 - val : val));
-      grad.addColorStop(pos, `rgb(${c},${c},${c})`);
+    if (soft) {
+      const color = erase ? '0,0,0' : '255,255,255';
+      const flow = 0.12; // 1スタンプあたりの最大アルファ。小さいほど「じわっと」育つ
+      const stops: [number, number][] = [
+        [0, 1],
+        [0.4, 0.65],
+        [0.7, 0.3],
+        [1, 0],
+      ];
+      for (const [pos, shape] of stops) {
+        grad.addColorStop(pos, `rgba(${color},${(flow * shape).toFixed(4)})`);
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    } else {
+      const stops: [number, number][] = [
+        [0, 1],
+        [0.85, 1],
+        [1, 0],
+      ];
+      for (const [pos, val] of stops) {
+        const c = Math.round(255 * (erase ? 1 - val : val));
+        grad.addColorStop(pos, `rgb(${c},${c},${c})`);
+      }
+      ctx.globalCompositeOperation = erase ? 'darken' : 'lighten';
     }
-    ctx.globalCompositeOperation = erase ? 'darken' : 'lighten';
     ctx.fillStyle = grad;
     ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
     ctx.globalCompositeOperation = 'source-over';
