@@ -96,6 +96,8 @@ export class App {
 
     events.on('mode', () => {
       this.brushCursor.hidden = state.mode !== 'paint';
+      // 表示用（生）と変形用（ぼかし）でマスクテクスチャを切り替えるため再アップロード
+      this.mask.dirty = true;
       this.needsRender = true;
     });
     events.on('params', () => (this.needsRender = true));
@@ -263,7 +265,10 @@ export class App {
     this.pinch.update(dt);
 
     if (this.mask.dirty && this.renderer) {
-      this.renderer.updateMask(this.mask.textureSource());
+      // ぬりモード中は「塗った通り」の生マスクを表示（ぼかしは変形計算専用）
+      this.renderer.updateMask(
+        state.mode === 'paint' ? this.mask.canvas : this.mask.textureSource(),
+      );
       this.mask.dirty = false;
       this.needsRender = true;
     }
