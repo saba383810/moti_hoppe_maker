@@ -84,6 +84,9 @@ export class MaskLayer {
 
   /**
    * ブラシスタンプ。
+   * 不透明グレースケール + lighten/darken（=画素ごとのmax/min）で合成する。
+   * 半透明の加算だとストローク中の重ね打ちでグラデが飽和して
+   * ふんわりがくっきりと同じになってしまうため、maxで「濃い方を残す」方式にする。
    * @param u,v rest UV
    * @param radiusIso iso空間での半径（高さ=1基準）
    * @param soft true=ふんわり（フチを広くぼかす）/ false=くっきり
@@ -94,21 +97,27 @@ export class MaskLayer {
     const cy = v * h;
     const r = Math.max(1, radiusIso * h);
     const ctx = this.ctx;
-    const color = erase ? '0,0,0' : '255,255,255';
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    if (soft) {
-      grad.addColorStop(0, `rgba(${color},1)`);
-      grad.addColorStop(0.35, `rgba(${color},0.9)`);
-      grad.addColorStop(0.65, `rgba(${color},0.45)`);
-      grad.addColorStop(1, `rgba(${color},0)`);
-    } else {
-      grad.addColorStop(0, `rgba(${color},1)`);
-      grad.addColorStop(0.85, `rgba(${color},1)`);
-      grad.addColorStop(1, `rgba(${color},0)`);
+    const stops: [number, number][] = soft
+      ? [
+          [0, 1],
+          [0.35, 0.85],
+          [0.65, 0.4],
+          [1, 0],
+        ]
+      : [
+          [0, 1],
+          [0.85, 1],
+          [1, 0],
+        ];
+    for (const [pos, val] of stops) {
+      const c = Math.round(255 * (erase ? 1 - val : val));
+      grad.addColorStop(pos, `rgb(${c},${c},${c})`);
     }
-    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalCompositeOperation = erase ? 'darken' : 'lighten';
     ctx.fillStyle = grad;
     ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+    ctx.globalCompositeOperation = 'source-over';
     if (!erase) this.painted = true;
     this.invalidate();
   }
