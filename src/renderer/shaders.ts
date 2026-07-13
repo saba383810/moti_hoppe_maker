@@ -70,6 +70,10 @@ in vec2 vUV;
 uniform sampler2D uTex;   // premultiplied alpha
 uniform sampler2D uMask;
 uniform float uMaskView;  // 1 = ぬりぬりモードのオーバーレイ表示
+// 透過素材対応の2パス描画:
+// 0 = 不透明パス（深度書き込みあり。半透明フリンジは捨てる）
+// 1 = フリンジパス（深度書き込みなしでブレンド。半透明のフチが下の絵を消さない）
+uniform float uPass;
 
 out vec4 outColor;
 
@@ -79,9 +83,10 @@ void main() {
     float m = texture(uMask, vUV).r;
     c *= 0.45 + 0.4 * m;                          // 未塗り部分を減光
     c += vec4(1.0, 0.55, 0.68, 1.0) * (0.35 * m); // 塗った部分をピンクに
-  } else if (c.a < 0.004) {
-    // 透明部分が深度を書いて後ろの絵を隠さないように捨てる
-    discard;
+  } else if (uPass < 0.5) {
+    if (c.a < 0.95) discard;
+  } else {
+    if (c.a >= 0.95) discard;
   }
   outColor = c;
 }

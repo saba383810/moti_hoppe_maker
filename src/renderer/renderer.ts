@@ -27,6 +27,7 @@ const UNIFORM_NAMES = [
   'uMaskEnabled',
   'uTex',
   'uMaskView',
+  'uPass',
 ] as const;
 
 export class Renderer {
@@ -106,7 +107,21 @@ export class Renderer {
     gl.uniform1i(u.uMask, 1);
 
     gl.bindVertexArray(this.mesh.vao);
-    gl.drawElements(gl.TRIANGLES, this.mesh.indexCount, gl.UNSIGNED_SHORT, 0);
+    if (frame.maskView) {
+      // ぬりモードは変形なし・オーバーレイ表示のみなので1パスでよい
+      gl.uniform1f(u.uPass, 0);
+      gl.drawElements(gl.TRIANGLES, this.mesh.indexCount, gl.UNSIGNED_SHORT, 0);
+    } else {
+      // ①不透明部分: 深度書き込みあり（引っ張り部分が手前に来る）
+      gl.uniform1f(u.uPass, 0);
+      gl.depthMask(true);
+      gl.drawElements(gl.TRIANGLES, this.mesh.indexCount, gl.UNSIGNED_SHORT, 0);
+      // ②半透明フリンジ: 深度書き込みなしでブレンド（透過素材の裏の絵を消さない）
+      gl.uniform1f(u.uPass, 1);
+      gl.depthMask(false);
+      gl.drawElements(gl.TRIANGLES, this.mesh.indexCount, gl.UNSIGNED_SHORT, 0);
+      gl.depthMask(true);
+    }
     gl.bindVertexArray(null);
   }
 }
